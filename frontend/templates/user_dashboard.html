@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard - Vehicle Parking App{% endblock %}
+
+{% block content %}
+<h1>User Dashboard</h1>
+
+<!-- Current Reservations -->
+{% if current_reservations %}
+<div class="card mb-2">
+    <div class="card-header">
+        <h3 class="card-title">Current Parking</h3>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Spot Number</th>
+                <th>Vehicle Number</th>
+                <th>Parked Since</th>
+                <th>Duration</th>
+                <th>Current Cost</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in current_reservations %}
+            <tr>
+                <td>{{ reservation.spot.lot.prime_location_name }}</td>
+                <td><strong>{{ reservation.spot.spot_number }}</strong></td>
+                <td>{{ reservation.vehicle_number }}</td>
+                <td>{{ reservation.parking_timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ reservation.duration_str }}</td>
+                <!-- FIX: Used the new `current_cost` property for a correct and clean calculation. -->
+                <td>₹{{ "%.2f"|format(reservation.current_cost) }}</td>
+                <td>
+                    <a href="{{ url_for('release_spot', reservation_id=reservation.id) }}" 
+                       class="btn btn-small btn-danger"
+                       onclick="return confirm('Are you sure you want to release this parking spot?')">Release Spot</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Available Parking Lots -->
+<div class="card mb-2">
+    <div class="card-header">
+        <h3 class="card-title">Available Parking Lots</h3>
+    </div>
+    
+    {% if lots %}
+        <div class="row">
+            {% for lot in lots %}
+            <div class="col-md-6">
+                <div class="card mb-2">
+                    <h4>{{ lot.prime_location_name }}</h4>
+                    <p><strong>Address:</strong> {{ lot.address }}, {{ lot.pin_code }}</p>
+                    <p><strong>Price:</strong> ₹{{ "%.2f"|format(lot.price_per_hour) }}/hour</p>
+                    <p><strong>Available Spots:</strong> {{ lot.available_spots_count }}/{{ lot.maximum_spots }}</p>
+                    
+                    {% if lot.available_spots_count > 0 %}
+                        <form method="POST" action="{{ url_for('book_spot', lot_id=lot.id) }}" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label" for="vehicle_number_{{ lot.id }}">Vehicle Number</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="vehicle_number_{{ lot.id }}" 
+                                       name="vehicle_number" 
+                                       placeholder="e.g., MH12AB1234" 
+                                       required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Book Spot</button>
+                        </form>
+                    {% else %}
+                        <p class="text-center"><em>No spots available</em></p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center p-2">No parking lots available at the moment.</p>
+    {% endif %}
+</div>
+
+<!-- Parking History -->
+{% if past_reservations %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Parking History</h3>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Spot</th>
+                <th>Vehicle</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Duration</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in past_reservations %}
+            <tr>
+                <td>{{ reservation.spot.lot.prime_location_name }}</td>
+                <td>{{ reservation.spot.spot_number }}</td>
+                <td>{{ reservation.vehicle_number }}</td>
+                <td>{{ reservation.parking_timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ reservation.leaving_timestamp.strftime('%d/%m/%Y %H:%M') if reservation.leaving_timestamp else 'N/A' }}</td>
+                <td>{{ reservation.duration_str }}</td>
+                <td>₹{{ "%.2f"|format(reservation.parking_cost) if reservation.parking_cost else '0.00' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

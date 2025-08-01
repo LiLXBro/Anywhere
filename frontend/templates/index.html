@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="mb-2">Welcome to ParkEasy</h1>
+    <p class="mb-2">Your Smart Vehicle Parking Solution</p>
+    
+    {% if not session.user_id %}
+        <div class="card" style="max-width: 600px; margin: 2rem auto;">
+            <div class="card-header">
+                <h3 class="card-title">Get Started</h3>
+            </div>
+            <p>Join thousands of users who trust ParkEasy for their parking needs.</p>
+            <div class="text-center">
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Register Now</a>
+                <a href="{{ url_for('login') }}" class="btn">Login</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card" style="max-width: 600px; margin: 2rem auto;">
+            <div class="card-header">
+                <h3 class="card-title">Welcome back, {{ session.username }}!</h3>
+            </div>
+            <p>Ready to manage your parking needs?</p>
+            <div class="text-center">
+                {% if session.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Go to Admin Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row mt-2">
+        <div class="col-md-4">
+            <div class="card">
+                <h4>🅿️ Easy Booking</h4>
+                <p>Book parking spots instantly with our user-friendly interface.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <h4>💰 Transparent Pricing</h4>
+                <p>Know exactly what you'll pay with our clear pricing structure.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <h4>📱 Real-time Updates</h4>
+                <p>Get live updates on parking availability and your bookings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
