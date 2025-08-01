@@ -86,6 +86,7 @@ body {
     font-weight: bold;
     color: #000000;
     margin-bottom: 0;
+} /* FIX: Added missing closing brace */
 
 /* form elements */
 .form-group {
@@ -178,6 +179,7 @@ body {
     text-align: left;
     border: 1px solid #000000;
     white-space: nowrap;
+} /* FIX: Added missing closing brace */
 
 .table th {
     background-color: #000000;
