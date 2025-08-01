@@ -26,23 +26,18 @@ def create_admin_user():
         admin.set_password('admin123')
         db.session.add(admin)
         print("Default admin user created: username=admin, password=admin123")
-    # FIX: Ensure the existing admin user has admin privileges
     elif not admin.is_admin:
         admin.is_admin = True
         print("Updated existing 'admin' user to have admin privileges.")
     
-    # FIX: Commit session to save any changes
     db.session.commit()
 
-# Replaced deprecated @app.before_first_request with the recommended approach.
-# This block will run once when the application starts.
 with app.app_context():
     db.create_all()
     create_admin_user()
 
 # Helper functions
 def login_required(f):
-    # FIX: Added @wraps for decorator robustness
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -52,7 +47,6 @@ def login_required(f):
     return decorated_function
 
 def admin_required(f):
-    # FIX: Added @wraps for decorator robustness
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
@@ -103,7 +97,6 @@ def register():
         password = request.form['password']
         phone = request.form['phone']
         
-        # Check if user exists
         if User.query.filter_by(username=username).first():
             flash('Username already exists.', 'error')
             return render_template('register.html')
@@ -112,7 +105,6 @@ def register():
             flash('Email already registered.', 'error')
             return render_template('register.html')
         
-        # Create new user
         user = User(username=username, email=email, phone=phone)
         user.set_password(password)
         
@@ -133,10 +125,9 @@ def logout():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    lots = ParkingLot.query.all()
+    lots = ParkingLot.query.order_by(ParkingLot.prime_location_name).all()
     users = User.query.filter_by(is_admin=False).all()
     
-    # Summary statistics
     total_lots = len(lots)
     total_spots = sum(lot.maximum_spots for lot in lots)
     occupied_spots = sum(lot.occupied_spots_count for lot in lots)
@@ -150,8 +141,17 @@ def admin_dashboard():
         'occupancy_rate': round((occupied_spots / total_spots * 100) if total_spots > 0 else 0, 1)
     }
     
+    # Data for charts
+    chart_data = {
+        'lot_names': [lot.prime_location_name for lot in lots],
+        'lot_occupied': [lot.occupied_spots_count for lot in lots],
+        'lot_available': [lot.available_spots_count for lot in lots],
+        'overall_occupied': occupied_spots,
+        'overall_available': available_spots
+    }
+    
     return render_template('admin_dashboard.html', 
-                           lots=lots, users=users, stats=stats)
+                           lots=lots, users=users, stats=stats, chart_data=chart_data)
 
 @app.route('/admin/create_lot', methods=['GET', 'POST'])
 @admin_required
@@ -163,7 +163,6 @@ def create_lot():
         price = float(request.form['price'])
         max_spots = int(request.form['max_spots'])
         
-        # Create parking lot
         lot = ParkingLot(
             prime_location_name=name,
             address=address,
@@ -175,7 +174,6 @@ def create_lot():
         db.session.add(lot)
         db.session.commit()
         
-        # Create parking spots
         for i in range(1, max_spots + 1):
             spot = ParkingSpot(
                 lot_id=lot.id,
@@ -206,7 +204,6 @@ def edit_lot(lot_id):
         current_spots = len(lot.spots)
         
         if new_max_spots > current_spots:
-            # Add new spots
             for i in range(current_spots + 1, new_max_spots + 1):
                 spot = ParkingSpot(
                     lot_id=lot.id,
@@ -215,7 +212,6 @@ def edit_lot(lot_id):
                 )
                 db.session.add(spot)
         elif new_max_spots < current_spots:
-            # Remove spots (only if they're available)
             spots_to_remove = lot.spots[new_max_spots:]
             for spot in spots_to_remove:
                 if spot.status == 'O':
@@ -236,7 +232,6 @@ def edit_lot(lot_id):
 def delete_lot(lot_id):
     lot = ParkingLot.query.get_or_404(lot_id)
     
-    # Check if any spots are occupied
     if lot.occupied_spots_count > 0:
         flash('Cannot delete lot with occupied spots!', 'error')
         return redirect(url_for('admin_dashboard'))
@@ -254,25 +249,31 @@ def user_dashboard():
     if user.is_admin:
         return redirect(url_for('admin_dashboard'))
     
-    # Get available lots
     lots = ParkingLot.query.all()
     available_lots = [lot for lot in lots if lot.available_spots_count > 0]
     
-    # Get user's current and past reservations
     current_reservations = Reservation.query.filter_by(
         user_id=user.id, 
         leaving_timestamp=None
     ).all()
     
-    past_reservations = Reservation.query.filter_by(user_id=user.id)\
-        .filter(Reservation.leaving_timestamp.isnot(None))\
-        .order_by(Reservation.leaving_timestamp.desc())\
-        .limit(10).all()
+    past_reservations = Reservation.query.filter(
+        Reservation.user_id == user.id,
+        Reservation.leaving_timestamp.isnot(None)
+    ).order_by(Reservation.leaving_timestamp.asc()).all()
+    
+    # Data for user charts
+    user_chart_data = {
+        'labels': [res.leaving_timestamp.strftime('%b %d') for res in past_reservations],
+        'costs': [res.parking_cost for res in past_reservations],
+        'durations': [round((res.leaving_timestamp - res.parking_timestamp).total_seconds() / 3600, 2) for res in past_reservations]
+    }
     
     return render_template('user_dashboard.html', 
                            lots=available_lots,
                            current_reservations=current_reservations,
-                           past_reservations=past_reservations)
+                           past_reservations=past_reservations,
+                           user_chart_data=user_chart_data)
 
 @app.route('/user/book_spot/<int:lot_id>', methods=['POST'])
 @login_required
@@ -281,7 +282,6 @@ def book_spot(lot_id):
     lot = ParkingLot.query.get_or_404(lot_id)
     vehicle_number = request.form['vehicle_number']
     
-    # Find first available spot
     available_spot = ParkingSpot.query.filter_by(
         lot_id=lot_id, 
         status='A'
@@ -291,7 +291,6 @@ def book_spot(lot_id):
         flash('No available spots in this lot!', 'error')
         return redirect(url_for('user_dashboard'))
     
-    # Create reservation
     reservation = Reservation(
         spot_id=available_spot.id,
         user_id=user.id,
@@ -299,7 +298,6 @@ def book_spot(lot_id):
         parking_timestamp=datetime.utcnow()
     )
     
-    # Update spot status
     available_spot.status = 'O'
     
     db.session.add(reservation)
@@ -314,16 +312,13 @@ def release_spot(reservation_id):
     reservation = Reservation.query.get_or_404(reservation_id)
     user = User.query.get(session['user_id'])
     
-    # Check if user owns this reservation
     if reservation.user_id != user.id:
         flash('Unauthorized access!', 'error')
         return redirect(url_for('user_dashboard'))
     
-    # Update reservation
     reservation.leaving_timestamp = datetime.utcnow()
     reservation.calculate_cost()
     
-    # Update spot status
     spot = ParkingSpot.query.get(reservation.spot_id)
     spot.status = 'A'
     
@@ -332,7 +327,7 @@ def release_spot(reservation_id):
     flash(f'Spot released! Total cost: ₹{reservation.parking_cost}', 'success')
     return redirect(url_for('user_dashboard'))
 
-# API Routes (Optional)
+# API Routes
 @app.route('/api/lots')
 def api_lots():
     lots = ParkingLot.query.all()

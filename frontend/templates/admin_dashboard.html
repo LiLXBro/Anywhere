@@ -29,6 +29,25 @@
     </div>
 </div>
 
+<!-- Charts Section -->
+{% if lots %}
+<div class="card mb-2">
+    <div class="card-header">
+        <h3 class="card-title">Parking Lot Statistics</h3>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <h4>Occupancy by Lot</h4>
+            <canvas id="lotOccupancyChart"></canvas>
+        </div>
+        <div class="col-md-4">
+            <h4>Overall Occupancy</h4>
+            <canvas id="overallOccupancyChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
     <!-- Parking Lots Management -->
     <div class="col-md-8">
@@ -122,25 +141,95 @@
     {% for lot in lots %}
     <div class="mb-2">
         <h4>{{ lot.prime_location_name }}</h4>
-        <div class="row">
+        <div class="parking-spots-grid">
             {% for spot in lot.spots %}
-            <div class="col-md-2" style="margin-bottom: 1rem;">
-                <div class="card" style="padding: 0.5rem; text-align: center; {% if spot.status == 'O' %}border-color: #666666;{% endif %}">
-                    <strong>{{ spot.spot_number }}</strong><br>
-                    <span class="status-{{ 'occupied' if spot.status == 'O' else 'available' }}">
-                        {{ 'OCCUPIED' if spot.status == 'O' else 'AVAILABLE' }}
-                    </span>
-                    {% if spot.current_reservation %}
-                    <br><small>{{ spot.current_reservation.vehicle_number }}</small>
-                    <br><small>{{ spot.current_reservation.user.username }}</small>
-                    <br><small>{{ spot.current_reservation.duration_str }}</small>
-                    {% endif %}
-                </div>
+            <div class="spot-card status-{{ 'occupied' if spot.status == 'O' else 'available' }}">
+                <strong>{{ spot.spot_number }}</strong>
+                <span>{{ 'OCCUPIED' if spot.status == 'O' else 'AVAILABLE' }}</span>
+                {% if spot.current_reservation %}
+                <small>{{ spot.current_reservation.vehicle_number }}</small>
+                <small>{{ spot.current_reservation.user.username }}</small>
+                <small>{{ spot.current_reservation.duration_str }}</small>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
     {% endfor %}
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if chart_data %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Overall Occupancy Pie Chart
+    const overallCtx = document.getElementById('overallOccupancyChart').getContext('2d');
+    new Chart(overallCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Occupied Spots', 'Available Spots'],
+            datasets: [{
+                label: 'Overall Occupancy',
+                data: [{{ chart_data.overall_occupied }}, {{ chart_data.overall_available }}],
+                backgroundColor: [
+                    '#666666', // Occupied - Dark Gray
+                    '#cccccc'  // Available - Light Gray
+                ],
+                borderColor: '#000000',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+
+    // Lot Occupancy Bar Chart
+    const lotCtx = document.getElementById('lotOccupancyChart').getContext('2d');
+    new Chart(lotCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.lot_names | tojson }},
+            datasets: [{
+                label: 'Occupied',
+                data: {{ chart_data.lot_occupied | tojson }},
+                backgroundColor: '#666666',
+                borderColor: '#000000',
+                borderWidth: 2
+            }, {
+                label: 'Available',
+                data: {{ chart_data.lot_available | tojson }},
+                backgroundColor: '#cccccc',
+                borderColor: '#000000',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true,
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+});
+</script>
 {% endif %}
 {% endblock %}
