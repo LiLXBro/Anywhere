@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-    // Auto-hide alerts after 5 seconds
+    // auto-hide alerts after 5 seconds
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
@@ -18,13 +18,13 @@ function initializeApp() {
         });
     }, 5000);
     
-    // Form validation
+    // Setting up form validation
     setupFormValidation();
     
-    // Setup dynamic updates
+    // Dynamic updates for dashboard
     setupDynamicUpdates();
     
-    // Setup confirmation dialogs
+    // Setup confirmation dialogs for delete actions
     setupConfirmationDialogs();
 }
 
@@ -46,7 +46,7 @@ function setupFormValidation() {
                     hideFieldError(field);
                 }
                 
-                // Specific validations
+                // Additional validation for specific fields
                 if (field.type === 'email' && field.value) {
                     if (!isValidEmail(field.value)) {
                         isValid = false;
@@ -80,7 +80,7 @@ function setupFormValidation() {
 }
 
 function setupDynamicUpdates() {
-    // Auto-refresh dashboard data every 30 seconds
+    // auto-refreshing dashboard data every 30 seconds
     if (window.location.pathname.includes('dashboard')) {
         setInterval(function() {
             updateDashboardStats();
@@ -89,7 +89,7 @@ function setupDynamicUpdates() {
 }
 
 function setupConfirmationDialogs() {
-    // Setup delete confirmations
+    // Setup confirmation dialogs for delete actions
     const deleteButtons = document.querySelectorAll('[data-confirm]');
     
     deleteButtons.forEach(function(button) {
@@ -133,17 +133,18 @@ function isValidPhone(phone) {
 }
 
 function isValidVehicleNumber(vehicleNumber) {
-    // Indian vehicle number format: XX00XX0000 or XX-00-XX-0000
+    // Indian vehicle number plate format
+    // Example: AB12CD1234 or AB-12-CD-1234
     const vehicleRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$|^[A-Z]{2}-[0-9]{2}-[A-Z]{2}-[0-9]{4}$/;
     return vehicleRegex.test(vehicleNumber.toUpperCase().replace(/\s/g, ''));
 }
 
 function updateDashboardStats() {
-    // Fetch updated statistics via API
+    // Fetching updated statistics via API
     fetch('/api/lots')
         .then(response => response.json())
         .then(data => {
-            // Update stats if elements exist
+            // Update the dashboard stats
             updateStatElement('total-lots', data.length);
             updateStatElement('available-spots', data.reduce((sum, lot) => sum + lot.available_spots, 0));
             updateStatElement('occupied-spots', data.reduce((sum, lot) => sum + lot.occupied_spots, 0));
@@ -158,7 +159,7 @@ function updateStatElement(id, value) {
     }
 }
 
-// Utility functions
+// formatting functions
 function formatCurrency(amount) {
     return '₹' + parseFloat(amount).toFixed(2);
 }

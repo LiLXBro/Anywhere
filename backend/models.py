@@ -15,7 +15,7 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
+    # relationships
     reservations = db.relationship('Reservation', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
@@ -37,18 +37,16 @@ class ParkingLot(db.Model):
     price_per_hour = db.Column(db.Float, nullable=False)
     maximum_spots = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
+
+    # relationships
     spots = db.relationship('ParkingSpot', backref='lot', lazy=True, cascade='all, delete-orphan', order_by='ParkingSpot.spot_number')
     
     @property
     def available_spots_count(self):
-        # FIX: Removed .all(). self.spots is already an iterable list.
         return len([spot for spot in self.spots if spot.status == 'A'])
     
     @property
     def occupied_spots_count(self):
-        # FIX: Removed .all(). self.spots is already an iterable list.
         return len([spot for spot in self.spots if spot.status == 'O'])
     
     def __repr__(self):
@@ -62,8 +60,8 @@ class ParkingSpot(db.Model):
     spot_number = db.Column(db.String(10), nullable=False)
     status = db.Column(db.String(1), default='A', nullable=False)  # A-Available, O-Occupied
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
+
+    # relationships
     reservations = db.relationship('Reservation', backref='spot', lazy=True)
     
     @property
@@ -91,7 +89,7 @@ class Reservation(db.Model):
         if self.leaving_timestamp and self.parking_timestamp:
             duration = self.leaving_timestamp - self.parking_timestamp
             hours = duration.total_seconds() / 3600
-            # Minimum 1 hour charge
+            # assuming minimum 1 hour charge
             hours = max(1, hours)
             self.parking_cost = round(hours * self.spot.lot.price_per_hour, 2)
             return self.parking_cost
@@ -114,7 +112,7 @@ class Reservation(db.Model):
         if self.parking_timestamp and not self.leaving_timestamp:
             duration = datetime.utcnow() - self.parking_timestamp
             hours = duration.total_seconds() / 3600
-            hours = max(1, hours) # Assuming minimum 1 hour charge
+            hours = max(1, hours) # assumed minimum charge of 1 hour
             return round(hours * self.spot.lot.price_per_hour, 2)
         return self.parking_cost or 0
     

@@ -10,7 +10,7 @@ app = Flask(__name__,
             static_folder='../frontend/static')
 app.config.from_object(Config)
 
-# Initialize database
+# initializing the database
 db.init_app(app)
 
 def create_admin_user():
@@ -36,7 +36,7 @@ with app.app_context():
     db.create_all()
     create_admin_user()
 
-# Helper functions
+#login and admin check middleware
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -60,7 +60,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Routes
+# routes
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -141,7 +141,7 @@ def admin_dashboard():
         'occupancy_rate': round((occupied_spots / total_spots * 100) if total_spots > 0 else 0, 1)
     }
     
-    # Data for charts
+    # preparing data for charts
     chart_data = {
         'lot_names': [lot.prime_location_name for lot in lots],
         'lot_occupied': [lot.occupied_spots_count for lot in lots],
@@ -327,7 +327,7 @@ def release_spot(reservation_id):
     flash(f'Spot released! Total cost: ₹{reservation.parking_cost}', 'success')
     return redirect(url_for('user_dashboard'))
 
-# API Routes
+# API Endpoints
 @app.route('/api/lots')
 def api_lots():
     lots = ParkingLot.query.all()
