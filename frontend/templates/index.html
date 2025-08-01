@@ -2,7 +2,8 @@
 
 {% block content %}
 <div class="text-center">
-    <h1 class="mb-2">Welcome to ParkEasy</h1>
+    <!-- FIX: Changed company name -->
+    <h1 class="mb-2">Welcome to Anywhere</h1>
     <p class="mb-2">Your Smart Vehicle Parking Solution</p>
     
     {% if not session.user_id %}
@@ -10,7 +11,8 @@
             <div class="card-header">
                 <h3 class="card-title">Get Started</h3>
             </div>
-            <p>Join thousands of users who trust ParkEasy for their parking needs.</p>
+            <!-- FIX: Changed company name -->
+            <p>Join thousands of users who trust Anywhere for their parking needs.</p>
             <div class="text-center">
                 <a href="{{ url_for('register') }}" class="btn btn-primary">Register Now</a>
                 <a href="{{ url_for('login') }}" class="btn">Login</a>
@@ -35,19 +37,19 @@
     <div class="row mt-2">
         <div class="col-md-4">
             <div class="card">
-                <h4>🅿️ Easy Booking</h4>
+                <h4> Easy Booking</h4>
                 <p>Book parking spots instantly with our user-friendly interface.</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card">
-                <h4>💰 Transparent Pricing</h4>
+                <h4>Transparent Pricing</h4>
                 <p>Know exactly what you'll pay with our clear pricing structure.</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card">
-                <h4>📱 Real-time Updates</h4>
+                <h4>Real-time Updates</h4>
                 <p>Get live updates on parking availability and your bookings.</p>
             </div>
         </div>

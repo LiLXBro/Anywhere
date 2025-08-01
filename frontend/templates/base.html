@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Vehicle Parking App{% endblock %}</title>
+    <title>{% block title %}Anywhere Parking App{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Added Chart.js library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header class="header">
         <div class="container">
             <nav class="navbar">
-                <div class="logo">🚗 ParkEasy</div>
+                <!-- FIX: Changed company name -->
+                <div class="logo">Anywhere</div>
                 <ul class="nav-links">
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     {% if session.user_id %}
@@ -50,7 +50,8 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 ParkEasy - Vehicle Parking Management System</p>
+            <!-- FIX: Changed company name -->
+            <p>&copy; 2025 Anywhere - Vehicle Parking Management System</p>
         </div>
     </footer>
 
