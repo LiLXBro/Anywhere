@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Anywhere - Vehicle Parking Management System
 
 Anywhere is a full-stack web application designed to simplify vehicle parking management. It provides a seamless experience for both administrators managing parking lots and users looking to book a spot. The application features a clean, responsive black-and-white theme, real-time updates, and a clear distinction between admin and user functionalities.
@@ -168,6 +167,3 @@ The application provides the following RESTful API endpoints:
 - **`GET /api/lots`**: Fetches a JSON list of all parking lots with their current status.
     
 - **`GET /api/lot/<id>/spots`**: Fetches a JSON list of all spots for a specific lot, including reservation details if occupied.
-=======
-
->>>>>>> 1b2986068ea6e57da36d0b650a8c74727d75c47d
